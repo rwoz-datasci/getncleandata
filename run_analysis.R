@@ -2,16 +2,10 @@ library(data.table)
 library(dplyr)
 
 
+##
+## CONSTANTS
+##
 dataPath <- file.path(".","data")
-zipURL <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
-zipFile <- file.path(dataPath,paste0("HAR-Dataset.zip")
-                     
-if(!file.exists(dataPath)){ dir.create(dataPath) }
-if(!file.exists(zipFile)) {
-    download.file(zipURL, zipFile)
-    file.create(file.path(dataPath,paste0("HAR-Dataset-download-datetime-",format(Sys.time(), "%Y%m%d-%H%M"))))
-}
-unzip(zipFile,exdir=dataPath)
 
 harBasePath <- file.path(dataPath,"UCI HAR Dataset")
 harSubsetPath <- c("test","train")
@@ -27,6 +21,20 @@ subjectIds <- c("subject_test.txt","subject_train.txt")
 
 
 
+fetchData <- function() {
+
+    zipURL <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+    zipFile <- file.path(dataPath,"HAR-Dataset.zip")
+    
+    if(!file.exists(dataPath)){ dir.create(dataPath) }
+    if(!file.exists(zipFile)) {
+        download.file(zipURL, zipFile)
+        file.create(file.path(dataPath,paste0("HAR-Dataset-download-datetime-",format(Sys.time(), "%Y%m%d-%H%M"))))
+    }
+    unzip(zipFile,exdir=dataPath)
+}
+
+
 
 extractCleanFeatureNames <- function(fileName)
 {
@@ -35,9 +43,9 @@ extractCleanFeatureNames <- function(fileName)
     ## replace , with -
     ## replace angle(...) with angle-of-
     ## remove () and traling )
-    tbl3 <- fread(featureNameFile)
-    featureNames_tbl <- tbl_df(tbl3)
-    rm(tbl3)
+    tbl1 <- fread(featureNameFile)
+    featureNames_tbl <- tbl_df(tbl1)
+    rm(tbl1)
     
     sub("[()]","",
         sub("[)]$","",
@@ -61,28 +69,23 @@ prepareSubset <- function(featureNamesVector, activityLabelsTable, featureFile, 
 {
     
     tbl1 <- fread(featureFile)
-    tbl2 <- fread(activityFile)
-    tbl4 <- fread(subjectFile)
-
-
+    tbl2 <- fread(subjectFile)
+    tbl3 <- fread(activityFile)
     features_tbl <- tbl_df(tbl1)
-    rm(tbl1)
+    subjectids_tbl <- tbl_df(tbl2)
+    activity_tbl <- tbl_df(tbl3)
+    rm(tbl1,tbl2,tbl3)
+    
     names(features_tbl) <- featureNamesVector
 
-
     ## insert subject ids
-    subjectids_tbl <- tbl_df(tbl4)
-    rm(tbl4)
     features_tbl <- features_tbl %>%
-        mutate(subjectid = factor(subjectids_tbl$V1)) %>%
+        mutate(subjectid = subjectids_tbl$V1) %>%
         select(subjectid,1:ncol(features_tbl))
 
     ## join activity labels with recorded activity ids
-
-    activity_tbl <- tbl_df(tbl2)
-    rm(tbl2)
     mergedLabels <- activity_tbl %>%
-        inner_join(labels) %>%
+        inner_join(activityLabelsTable) %>%
         select(V2)
 
     ## insert activity labels on the left 
@@ -94,7 +97,7 @@ prepareSubset <- function(featureNamesVector, activityLabelsTable, featureFile, 
     main_tbl <- features_tbl  %>%
         select(activity,subjectid,matches("(mean|std)")) %>%
         print
-
+    return(main_tbl)
 }
 
 insertColumnOfTypeFactor <- function(table,name,value,levels)
@@ -111,6 +114,16 @@ insertColumnOfTypeFactor <- function(table,name,value,levels)
 
 
 
+
+################################################################################
+##
+## MAIN
+##
+################################################################################
+
+
+fetchData()
+
 featureNameFile <- file.path(harBasePath,features)
 labelsFile <- file.path(harBasePath,activityLabels)
 
@@ -121,7 +134,7 @@ featureNames <- extractCleanFeatureNames(featureNameFile)
 ## load activity ids and labels
 tbl0 <- fread(labelsFile)
 activityLabels_tbl <- tbl_df(tbl0)
-
+rm(tbl0)
 
 ##
 ## Load and prepare all subsets: TEST, TRAINING
@@ -135,7 +148,7 @@ for(idx in dataSubSets)
     activityFile <- file.path(harBasePath,harSubsetPath[idx],activityIds[idx])
     subjFile <- file.path(harBasePath,harSubsetPath[idx],subjectIds[idx])
 
-    subset_tbl <- prepareSubset(featureNames,activityLabels_tbl,featFile, activityFile,subjFile)
+    subset_tbl <- prepareSubset(featureNames,activityLabels_tbl,featFile,activityFile,subjFile)
 
     subset_tbl <- insertColumnOfTypeFactor(subset_tbl,"modeofoperation",names(dataSubSets)[idx],names(dataSubSets))
 
@@ -146,7 +159,7 @@ for(idx in dataSubSets)
 ##
 ## Merge all data tables in the subsetList
 ##
-## FINAL HAR DATASET containing subject ids, activity labels,
+## Step 1-4: FINAL HAR DATASET containing subject ids, activity labels,
 ## mode-of-operation lables (test,train) additionally to measurements
 ## involving mean and stddev
 ##
@@ -155,5 +168,21 @@ for(idx in dataSubSets)
 harDataset <- bind_rows(subsetList)
 
 
+
+
+##
+## Step 5: calculates the means of all values grouped by activity and
+## subject
+##
+harDatasetSummarisedBySubjectAndActivity <- harDataset %>%
+    group_by(activity,subjectid) %>%
+    summarise_if(is.numeric,mean) %>%
+    arrange(activity,subjectid)
+
+
+## Print the first 4 columns for demo purposes
+harDatasetSummarisedBySubjectAndActivity %>%
+    select(activity,subjectid,3:4) %>%
+    as.data.frame
 
 

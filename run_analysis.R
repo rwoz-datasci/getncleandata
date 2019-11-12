@@ -1,3 +1,38 @@
+##
+## Script developed as part of the course project of 'Getting and Cleaning Data'
+##
+## This code downloads a 2012 version of the UCI 'Human Activity
+## Recognition Using Smartphones Data Set'
+##
+## Downloaded from
+## https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip
+## Available originally at
+## http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones
+##
+##
+## Description: the dataset represents feature vectors computed from
+## accelerometer and gyroscope data from smartphone user. The data was
+## taken while users performed different types of body movements.
+##
+## @see CodeBook.md in the git repository for details.
+##
+## Output:
+##
+## harDataset .....The feature vector data of training and test data
+## subsets are combined with human-readable activity.  All variables
+## describing mean and standard deviation are kept. All others are
+## discarded.
+##
+## harDatasetSummarisedBySubjectAndActivity .....additionally, a
+## tabular summary is created containing the mean of all variables
+## *grouped by* activity and subject id.
+##
+##
+## @author Ralph Wozelka
+## @email coursera@wozelka.at
+## @date 2019-11-12
+##
+##
 library(data.table)
 library(dplyr)
 

@@ -2,43 +2,42 @@
 Course repository for Coursera's online lecture 'Getting and Cleaning Data'
 
 
-## The Human Activity Recognition Using Smartphones Dataset
+## Scripts
 
-README.txt describes the dataset thoroughly listing all types of data
-files and their purpose.
+The task is accomplished solely by one script 'run_analysis.R'
 
-The dataset is prepared for machine learning. The files (X|y)_(train|test).txt
-contain feature vectors and activity labels to train and test a classifier.
-They do not contain any raw data.
+### Structure
 
-Raw data is available in the subdirectory 'Inertial Signals' where
-accelerometer and gyroscope measurements are stored in text files.
+  Constant values are defined on top                                
+                                                                    
+  Functions definitions follow:                                     
+    fetchData(..)                                                   
+    extractCleanFeatureNames(..)                                    
+    prepareSubset(..)                                               
+    insertColumnOfTypeFactor(..)                                    
+    summariseGroupedByActivitySubject(..)                           
+                                                                    
+  "Main" block on the bottom performing the download and         
+  computation using the functions above                             
+                                                                    
 
+### Pre and Postconditions
 
-## Preparing the data: Steps to perform
-
-
-Goal: combine data into one clean table of records
-
-* Merge subject data to the left with feature data from X_train.txt and subject_train.txt.
-  Check if no. rows is identical!
-
-* Replace actitivity ids in y_train.txt with respective labels from acitivity_labels.txt
-
-* Merge activities to the left with feature table
-  Check if no. rows is identical!
-
-* Merge sensor data to the right the previous table from
-  body_acc_xzy_train.txt, body_gyro_xyz_train.txt,
-  total_acc_xyz_train.txt.  Each row is to be stored as one element of
-  the target column, because a complete row is associated with its
-  resp. feature vector.
-  Check if no. rows is identical!
-
-* Define variable names as follows:
-  ("activity","subject",...features.txt...,"bodyaccx",..."bodygyrox",..."totalaccz")
-
-* Do the same for TEST data
-
-* Concatenate training and test data frames
-
+Input:                                                              
+  Expects the original dataset in the file "./data/UCI HAR Dataset.zip".
+  Downloads the ZIP file if it is missing.                          
+                                                                    
+Output:                                                             
+                                                                    
+  harDataset The feature vector data of training and test data
+             subsets are combined with human-readable activity.     
+             All variables describing mean and standard deviation   
+             are kept. All others are discarded.                    
+                                                                    
+  harDatasetSummarisedBySubjectAndActivity 
+             additionally, a tabular
+             summary is created containing the mean of all variables
+             *grouped by* activity and subject id.
+                                                                    
+  File 'HAR-dataset-summary.txt' .....a space-separated file dump of
+             harDatasetSummarisedBySubjectAndActivity               

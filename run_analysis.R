@@ -2,30 +2,54 @@
 ## Script developed as part of the course project of 'Getting and Cleaning Data'
 ##
 ## This code downloads a 2012 version of the UCI 'Human Activity
-## Recognition Using Smartphones Data Set'
-##
+## Recognition Using Smartphones Data Set', cleans and merges the
+## contained tables of feature vectors followed by summarising the
+## data grouped by activity and participant (subjectid).
+## 
 ## Downloaded from
 ## https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip
 ## Available originally at
 ## http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones
 ##
-##
-## Description: the dataset represents feature vectors computed from
+## Short description: the dataset represents feature vectors computed from
 ## accelerometer and gyroscope data from smartphone user. The data was
 ## taken while users performed different types of body movements.
 ##
 ## @see CodeBook.md in the git repository for details.
 ##
+##
+##
+## Script structure:
+##   Constant values are defined on top
+##
+##   Functions definitions follow:
+##     fetchData(..)
+##     extractCleanFeatureNames(..)
+##     prepareSubset(..)
+##     insertColumnOfTypeFactor(..)
+##     summariseGroupedByActivitySubject(..)
+##
+##   "Main" function on the bottom performing the download and
+##   computation using the functions above
+##
+##
+## Input:
+##   Expects the file "./data/UCI HAR Dataset.zip".
+##   Downloads the ZIP file if it is missing.
+##
 ## Output:
 ##
-## harDataset .....The feature vector data of training and test data
-## subsets are combined with human-readable activity.  All variables
-## describing mean and standard deviation are kept. All others are
-## discarded.
+##   harDataset .....The feature vector data of training and test data
+##              subsets are combined with human-readable activity.
+##              All variables describing mean and standard deviation
+##              are kept. All others are discarded.
 ##
-## harDatasetSummarisedBySubjectAndActivity .....additionally, a
-## tabular summary is created containing the mean of all variables
-## *grouped by* activity and subject id.
+##   harDatasetSummarisedBySubjectAndActivity .....additionally, a
+##              tabular summary is created containing the mean of all
+##              variables *grouped by* activity and subject id.
+##
+##   File 'HAR-dataset-summary.txt' .....a space-separated file dump of
+##              harDatasetSummarisedBySubjectAndActivity
 ##
 ##
 ## @author Ralph Wozelka
@@ -37,10 +61,12 @@ library(data.table)
 library(dplyr)
 
 
-##
+########################################################################
 ## CONSTANTS
 ##
 dataPath <- file.path(".","data")
+zipURL <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+zipFile <- file.path(dataPath,"UCI HAR Dataset.zip")
 
 harBasePath <- file.path(dataPath,"UCI HAR Dataset")
 harSubsetPath <- c("test","train")
@@ -55,18 +81,19 @@ subjectIds <- c("subject_test.txt","subject_train.txt")
 
 
 
+########################################################################
+## FUNCTIONS
+##
+fetchData <- function(url,zipPath) {
 
-fetchData <- function() {
-
-    zipURL <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
-    zipFile <- file.path(dataPath,"HAR-Dataset.zip")
-    
-    if(!file.exists(dataPath)){ dir.create(dataPath) }
-    if(!file.exists(zipFile)) {
-        download.file(zipURL, zipFile)
-        file.create(file.path(dataPath,paste0("HAR-Dataset-download-datetime-",format(Sys.time(), "%Y%m%d-%H%M"))))
+    basePath <- dirname(zipPath)
+    if(!file.exists(basePath)){ dir.create(basePath,recursive=T) }
+    if(!file.exists(zipPath)) {
+        print(basename(url))
+        stopifnot(download.file(zipURL, zipPath) == 0)
+        file.create(file.path(basePath,paste0("UCI-HAR-Dataset-download-datetime-",format(Sys.time(), "%Y%m%d-%H%M"))))
     }
-    unzip(zipFile,exdir=dataPath)
+    unzip(zipPath,exdir=dirname(zipPath))
 }
 
 
@@ -100,6 +127,11 @@ extractCleanFeatureNames <- function(fileName)
 
 
 
+##
+## Read a feature vector table.
+## Adds the column of subject ids to the left.
+## Add user-readable activity labels in a column to the left. 
+## 
 prepareSubset <- function(featureNamesVector, activityLabelsTable, featureFile, activityFile, subjectFile)
 {
     
@@ -147,17 +179,34 @@ insertColumnOfTypeFactor <- function(table,name,value,levels)
 }
 
 
+summariseGroupedByActivitySubject <- function(dataset)
+{
+    summarised <- dataset %>%
+        group_by(activity,subjectid) %>%
+        summarise_if(is.numeric,mean) %>%
+        arrange(activity,subjectid)
+
+    suffixes <- rep("-groupedmean",length(names(summarised)))
+    suffixes[1:2]=c("","")
+    amendedNames <- paste0(names(summarised),suffixes)
+    names(summarised) <- amendedNames
+    
+    ## Print the first 4 columns for demo purposes
+    summarised %>%
+        select(activity,subjectid,3:4) %>%
+        as.data.frame
+    return(summarised)
+}    
 
 
-
-################################################################################
+########################################################################
 ##
 ## MAIN
 ##
-################################################################################
+########################################################################
 
 
-fetchData()
+fetchData(zipURL,zipFile)
 
 featureNameFile <- file.path(harBasePath,features)
 labelsFile <- file.path(harBasePath,activityLabels)
@@ -166,7 +215,7 @@ labelsFile <- file.path(harBasePath,activityLabels)
 
 featureNames <- extractCleanFeatureNames(featureNameFile)
 
-## load activity ids and labels
+## load activity id to label mapping
 tbl0 <- fread(labelsFile)
 activityLabels_tbl <- tbl_df(tbl0)
 rm(tbl0)
@@ -174,7 +223,8 @@ rm(tbl0)
 ##
 ## Load and prepare all subsets: TEST, TRAINING
 ##
-## Add each data table to the subsetList
+## Adds subset's label (TEST,TRAINING) in the column 'modeofoperation' to the left.
+## Adds each data table to the subsetList.
 ##
 subsetList <- vector("list",0)
 for(idx in dataSubSets)
@@ -209,15 +259,7 @@ harDataset <- bind_rows(subsetList)
 ## Step 5: calculates the means of all values grouped by activity and
 ## subject
 ##
-harDatasetSummarisedBySubjectAndActivity <- harDataset %>%
-    group_by(activity,subjectid) %>%
-    summarise_if(is.numeric,mean) %>%
-    arrange(activity,subjectid)
+harDatasetSummarisedBySubjectAndActivity <- summariseGroupedByActivitySubject(harDataset)
 
 
-## Print the first 4 columns for demo purposes
-harDatasetSummarisedBySubjectAndActivity %>%
-    select(activity,subjectid,3:4) %>%
-    as.data.frame
-
-
+write.table(harDatasetSummarisedBySubjectAndActivity,file="HAR-dataset-summary.txt",row.names=F)

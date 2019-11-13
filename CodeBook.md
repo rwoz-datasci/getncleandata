@@ -27,10 +27,11 @@ Steps to accomplish these goals:
 * Merge subject data to the left with feature data from X_train.txt
   and subject_train.txt.  Check if no. rows is identical!
 
-* Replace actitivity ids in y_train.txt with respective labels from
-  acitivity_labels.txt
+* Replace actitivity ids from y_train.txt with respective labels from
+  acitivity_labels.txt by changing the variable from integer to type
+  'factor'
 
-* Merge activities to the left with feature table
+* Merge activitiy column to the left with feature table
   Check if no. rows is identical!
 
 * Define variable names as follows:
@@ -42,7 +43,7 @@ Steps to accomplish these goals:
 
 * Summarise the dataset grouped by actitvity and subject id
 
-* Append suffix "groupedmean" to indicate the operations performed in
+* Append suffix "-groupedmean" to indicate the operations performed in
   the previous step
 
 

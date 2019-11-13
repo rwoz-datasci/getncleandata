@@ -69,6 +69,12 @@ information on how they were constructed.
 
 ### List of Variables 
 
+modeofoperation  [ NOT AVAILABLE IN THE SUMMARISED DATASET ]
+    description: info whether data belongs to test or training data subset
+    type: factor
+    labels: TEST
+            TRAINING
+
 activity 
     description: body movement which has been performed by a subject
     type: factor

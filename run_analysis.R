@@ -19,37 +19,37 @@
 ##
 ##
 ##
-## Script structure:
-##   Constant values are defined on top
-##
-##   Functions definitions follow:
-##     fetchData(..)
-##     extractCleanFeatureNames(..)
-##     prepareSubset(..)
-##     insertColumnOfTypeFactor(..)
-##     summariseGroupedByActivitySubject(..)
-##
-##   "Main" function on the bottom performing the download and
-##   computation using the functions above
-##
-##
-## Input:
-##   Expects the file "./data/UCI HAR Dataset.zip".
-##   Downloads the ZIP file if it is missing.
-##
-## Output:
-##
-##   harDataset .....The feature vector data of training and test data
-##              subsets are combined with human-readable activity.
-##              All variables describing mean and standard deviation
-##              are kept. All others are discarded.
-##
-##   harDatasetSummarisedBySubjectAndActivity .....additionally, a
-##              tabular summary is created containing the mean of all
-##              variables *grouped by* activity and subject id.
-##
+## Script structure:                                                   
+##   Constant values are defined on top                                
+##                                                                     
+##   Functions definitions follow:                                     
+##     fetchData(..)                                                   
+##     extractCleanFeatureNames(..)                                    
+##     prepareSubset(..)                                               
+##     insertColumnOfTypeFactor(..)                                    
+##     summariseGroupedByActivitySubject(..)                           
+##                                                                     
+##   "Main" function on the bottom performing the download and         
+##   computation using the functions above                             
+##                                                                     
+##                                                                     
+## Input:                                                              
+##   Expects the file "./data/UCI HAR Dataset.zip".                    
+##   Downloads the ZIP file if it is missing.                          
+##                                                                     
+## Output:                                                             
+##                                                                     
+##   harDataset .....The feature vector data of training and test data 
+##              subsets are combined with human-readable activity.     
+##              All variables describing mean and standard deviation   
+##              are kept. All others are discarded.                    
+##                                                                     
+##   harDatasetSummarisedBySubjectAndActivity .....additionally, a     
+##              tabular summary is created containing the mean of all  
+##              variables *grouped by* activity and subject id.        
+##                                                                     
 ##   File 'HAR-dataset-summary.txt' .....a space-separated file dump of
-##              harDatasetSummarisedBySubjectAndActivity
+##              harDatasetSummarisedBySubjectAndActivity                
 ##
 ##
 ## @author Ralph Wozelka

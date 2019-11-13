@@ -46,10 +46,21 @@ Steps to accomplish these goals:
   the previous step
 
 
+### The Summarised Dataset
+
+The dataset obatained by goal "1." is grouped by actitvity and subject
+id. Multiple rows are then replaced by their mean value.  The result
+is one row of means per activity and subject id, i.e. 30 rows per
+activity as there are 30 distinct subject ids.  The rows are sorted in
+ascending order by activity (their order according to activity ids
+from 'activity_labels.txt') and subject id.
+
+
 ## Variables
 
-The variables below represent all those describing a mean or
-standard deviation feature as they are listed in 'UCI HAR Dataset/features.txt'.
+The variables below represent all those describing a mean or standard
+deviation feature as they are listed in 'UCI HAR
+Dataset/features.txt'.
 
 Please look at 'UCI HAR Dataset/features_info.txt' for more detailed
 information on how they were constructed.

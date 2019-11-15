@@ -33,23 +33,30 @@
 ##   computation using the functions above                             
 ##                                                                     
 ##                                                                     
-## Input:                                                              
-##   Expects the file "./data/UCI HAR Dataset.zip".                    
+## Input:
+##
+##   Expects the "./data/UCI HAR Dataset.zip"
+##   or "./UCI HAR Dataset.zip".
+##   
 ##   Downloads the ZIP file if it is missing.                          
 ##                                                                     
 ## Output:                                                             
 ##                                                                     
-##   harDataset .....The feature vector data of training and test data 
-##              subsets are combined with human-readable activity.     
-##              All variables describing mean and standard deviation   
-##              are kept. All others are discarded.                    
+##   harDataset The feature vector data of training and test data
+##              subsets are combined with human-readable activity.
+##              All variables describing mean and standard deviation
+##              are kept. All others are discarded.
 ##                                                                     
-##   harDatasetSummarisedBySubjectAndActivity .....additionally, a     
-##              tabular summary is created containing the mean of all  
-##              variables *grouped by* activity and subject id.        
+##   harDatasetSummarisedBySubjectAndActivity
+##
+##              A tabular summary of harDataset containing
+##              the mean of all variables *grouped by* activity and
+##              subject id.
 ##                                                                     
-##   File 'HAR-dataset-summary.txt' .....a space-separated file dump of
-##              harDatasetSummarisedBySubjectAndActivity                
+##   File 'HAR-dataset-summary.txt'
+##
+##              a space-separated file dump of
+##              harDatasetSummarisedBySubjectAndActivity
 ##
 ##
 ## @author Ralph Wozelka
@@ -65,6 +72,7 @@ library(dplyr)
 ## CONSTANTS
 ##
 dataPath <- file.path(".","data")
+##dataPath <- file.path(".")
 zipURL <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
 zipFile <- file.path(dataPath,"UCI HAR Dataset.zip")
 
@@ -87,26 +95,29 @@ subjectIds <- c("subject_test.txt","subject_train.txt")
 fetchData <- function(url,zipPath) {
 
     basePath <- dirname(zipPath)
+    filename <- basename(zipPath)
     if(!file.exists(basePath)){ dir.create(basePath,recursive=T) }
-    if(!file.exists(zipPath)) {
-        print(basename(url))
-        stopifnot(download.file(zipURL, zipPath) == 0)
-        file.create(file.path(basePath,paste0("UCI-HAR-Dataset-download-datetime-",format(Sys.time(), "%Y%m%d-%H%M"))))
+    if(file.exists(file.path(".",filename))) {
+        zipPath <- file.path(".",filename)
     }
-    unzip(zipPath,exdir=dirname(zipPath))
+    if(!file.exists(zipPath)) {
+        stopifnot(download.file(url, zipPath) == 0)
+        file.create(file.path(basePath,paste0("uci-har-dataset-download-datetime-",format(sys.time(), "%y%m%d-%h%m"))))
+    }
+    unzip(zipPath,exdir=basePath)
 }
 
 
 
-extractCleanFeatureNames <- function(fileName)
+extractcleanfeaturenames <- function(filename)
 {
     ## set variable names from features.txt
     ## after cleaning label strings:
     ## replace , with -
     ## replace angle(...) with angle-of-
     ## remove () and traling )
-    tbl1 <- fread(featureNameFile)
-    featureNames_tbl <- tbl_df(tbl1)
+    tbl1 <- fread(featurenamefile)
+    featurenames_tbl <- tbl_df(tbl1)
     rm(tbl1)
     
     sub("[()]","",
@@ -115,7 +126,7 @@ extractCleanFeatureNames <- function(fileName)
                 sub("[(][)]","",
                     sub(",","-",
                         make.unique(
-                            tolower(featureNames_tbl$V2),
+                            tolower(featurenames_tbl$v2),
                             sep="-"
                         )
                         )
@@ -162,8 +173,8 @@ prepareSubset <- function(featureNamesVector, activityLabelsTable, featureFile, 
 
     ## FINAL STEP: select only measurements involving mean and stddev
     main_tbl <- features_tbl  %>%
-        select(activity,subjectid,matches("(mean|std)")) %>%
-        print
+        select(activity,subjectid,matches("(mean|std)"))
+    
     return(main_tbl)
 }
 
@@ -184,6 +195,7 @@ summariseGroupedByActivitySubject <- function(dataset)
     summarised <- dataset %>%
         group_by(activity,subjectid) %>%
         summarise_if(is.numeric,mean) %>%
+##        arrange(subjectid,activity)
         arrange(activity,subjectid)
 
     suffixes <- rep("-groupedmean",length(names(summarised)))

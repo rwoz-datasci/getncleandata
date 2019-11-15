@@ -3,8 +3,8 @@
 
 ## The Human Activity Recognition Using Smartphones Dataset
 
-README.txt describes the dataset thoroughly listing all types of data
-files and their purpose.
+README.txt from the UCI HAR Dataset.zip file describes the dataset
+thoroughly listing all types of data files and their purpose.
 
 The dataset is prepared for machine learning. The files
 (X|y)_(train|test).txt contain feature vectors and activity labels to
@@ -25,7 +25,8 @@ Goals:
 Steps to accomplish these goals:
 
 * Merge subject data to the left with feature data from X_train.txt
-  and subject_train.txt.  Check if no. rows is identical!
+  and subject_train.txt.  
+  Check if no. rows is identical!
 
 * Replace actitivity ids from y_train.txt with respective labels from
   acitivity_labels.txt by changing the variable from integer to type
@@ -49,7 +50,7 @@ Steps to accomplish these goals:
 
 ### The Summarised Dataset
 
-The dataset obatained by goal "1." is grouped by actitvity and subject
+The dataset obtained by goal "1." is grouped by actitvity and subject
 id. Multiple rows are then replaced by their mean value.  The result
 is one row of means per activity and subject id, i.e. 30 rows per
 activity as there are 30 distinct subject ids.  The rows are sorted in
